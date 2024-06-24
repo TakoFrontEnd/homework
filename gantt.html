@@ -124,10 +124,10 @@ createApp({
           indexAxis: 'y',
           scales: {
             x: {
-              min: '2023-01-01',
+              min: '2024-06-01',
               position: 'bottom',
               type: 'time',
-              stacked: true,
+              stacked: false,
               time: {
                 unit: 'day',
                 displayFormats: {
@@ -152,8 +152,7 @@ createApp({
         }
       };
 
-      new Chart(ctx, config)
-     
+      new Chart(ctx, config);
     };
 
     const fetchData = () => {
