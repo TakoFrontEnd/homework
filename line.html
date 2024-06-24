@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata@2.2.5/dist/chartjs-plugin-dragdata.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+        }
+        .chartMenu {
+            width: 100vw;
+            height: 40px;
+            background: #1A1A1A;
+            color: rgba(54, 162, 235, 1);
+        }
+        .chartMenu p {
+            padding: 10px;
+            font-size: 20px;
+        }
+        .chartCard {
+            width: 100vw;
+            height: calc(100vh - 40px);
+            background: rgba(54, 162, 235, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chartBox {
+            width: 900px;
+            padding: 20px;
+            border-radius: 20px;
+            border: solid 3px rgba(54, 162, 235, 1);
+            background: white;
+        }
+    </style>
+</head>
+<body>
+<div id="app" class="chartCard">
+    <div class="chartBox">
+        <form @submit.prevent="searchData" class="row g-3">
+            <div class="col-auto">
+              <input type="date" class="form-control" v-model="startDate">
+            </div>
+            <div class="col-auto">
+              <input type="date" class="form-control" v-model="endDate">
+            </div>
+            <div class="col-auto">
+              <button type="submit" class="btn btn-primary mb-3">搜尋</button>
+            </div>
+        </form>
+        <canvas ref="myChart" id="myChart"></canvas>
+    </div>
+</div>
+<script>
+    const { createApp, ref, onMounted } = Vue;
+
+    createApp({
+        setup(){
+            const myChart = ref(null);
+            const chartInstance = ref(null);
+            const startDate = ref('');
+            const endDate = ref('');
+
+            const createChart = (data) => {
+                const ctx = myChart.value.getContext('2d');
+                const formattedData = data.map(item => ({
+                    x: new Date(item.Date),
+                    y: item.value
+                }));
+
+                const config = {
+                    type: "line",
+                    data: {
+                        datasets: [{
+                            label: 'Dataset 1',
+                            data: formattedData,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                        annotation: {
+                            annotations: {
+                                    line1: {
+                                        type: 'line',
+                                        yMin: 10,
+                                        yMax: 10,
+                                        borderColor: 'green',
+                                        borderWidth: 2,
+                                    },
+                                    line2: {
+                                        type: 'line',
+                                        yMin: 20,
+                                        yMax: 20,
+                                        borderColor: 'red',
+                                        borderWidth: 2,
+                                    },
+                                    label1:{
+                                        type: 'label',
+                                        textAlign: 'center',
+                                        yValue: 10,
+                                        backgroundColor: 'rgba(245,245,245)',
+                                        content: ['Min'],
+                                        font: {
+                                        size: 18
+                                        }
+                                    },
+                                    label2:{
+                                        type: 'label',
+                                        textAlign: 'center',
+                                        yValue: 20,
+                                        backgroundColor: 'rgba(245,245,245)',
+                                        content: ['Max'],
+                                        font: {
+                                        size: 18
+                                        }
+                                    },
+                                }
+                            }
+                        },
+                        scales: { 
+                            x: {
+                                type: 'timeseries',
+                                time: {
+                                    unit: 'day'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                };
+
+                if (chartInstance.value) {
+                    chartInstance.value.destroy();
+                }
+                chartInstance.value = new Chart(ctx, config);
+            };
+            
+            const fetchData = () => {
+                fetch('line.json')
+                .then(response => response.json())
+                .then(data => {
+                    createChart(data.datasets[0].data);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+            };
+
+            const searchData = () => {
+                fetch('line.json')
+                .then(response => response.json())
+                .then(data => {
+                    const filteredData = data.datasets[0].data.filter(item => {
+                        const itemDate = new Date(item.Date);
+                        return (!startDate.value || itemDate >= new Date(startDate.value)) &&
+                               (!endDate.value || itemDate <= new Date(endDate.value));
+                    });
+                    createChart(filteredData);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+            };
+
+            onMounted(() => {
+                fetchData();
+            });
+            return { myChart, startDate, endDate, searchData };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>

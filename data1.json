@@ -1,39 +1,28 @@
 {
-    "labels": ["device1", "device2"],
-    "datasets": [
-      {
-        "label": "1",
-        "data": [
-          ["2024-06-07 15:08:45.626", "2024-06-08 15:08:46.564"],
-          ["2024-06-08 15:08:41.625", "2024-06-09 15:08:45.626"]
-        ],
-        "backgroundColor": ["rgba(108,117,125, 1)"],
-        "borderColor": ["rgba(0, 0, 0, 1)"],
-        "barPercentage": 0.1,
-        "borderRadius": 3
-      },
-      {
-        "label": "2",
-        "data": [
-          ["2024-06-01 15:08:45.626", "2024-06-04 15:08:46.564"],
-          ["2024-06-02 15:08:45.626", "2024-06-05 15:08:46.564"]
-        ],
-        "backgroundColor": ["rgba(255, 159, 64, 1)"],
-        "borderColor": ["rgba(0, 0, 0, 1)"],
-        "barPercentage": 0.1,
-        "borderRadius": 3
-      },
-      {
-        "label": "3",
-        "data": [
-          ["2024-06-12 15:08:45.626", "2024-06-19 15:08:46.564"],
-          ["2024-06-09 15:08:45.626", "2024-06-12 15:08:46.564"]
-        ],
-        "backgroundColor": ["rgba(254, 22, 1, 1)"],
-        "borderColor": ["rgba(0, 0, 0, 1)"],
-        "barPercentage": 0.1,
-        "borderRadius": 3
-      }
-    ]
-  }
-  
+  "datasets": [
+    {
+      "label": "Completed",
+      "data": [
+        {"start": "2023-08-17 14:11:34.285", "end": "2023-08-17 14:12:44.270", "device": "device1", "status": "Completed","color": "rgba(108, 117, 125, 1)"},
+        {"start": "2024-06-08 15:08:41.625", "end": "2024-06-09 15:08:45.626", "device": "device2", "status": "Completed","color": "rgba(108, 117, 125, 1)"},
+        {"start": "2024-06-03 15:08:45.626", "end": "2024-06-10 15:08:46.564", "device": "device3", "status": "Completed","color": "rgba(108, 117, 125, 1)"}
+      ]
+    },
+    {
+      "label": "Ongoing",
+      "data": [
+        {"start": "2023-08-17 12:11:54.429", "end": "2023-08-17 13:12:40.690", "device": "device1", "status": "Ongoing", "color": "rgba(255, 159, 64, 1)"},
+        {"start": "2024-06-02 15:08:45.626", "end": "2024-06-05 15:08:46.564", "device": "device2", "status": "Ongoing", "color": "rgba(255, 159, 64, 1)"},
+        {"start": "2024-06-05 15:08:46.564", "end": "2024-06-06 15:08:46.564", "device": "device3", "status": "Ongoing", "color": "rgba(255, 159, 64, 1)"}
+      ]
+    },
+    {
+      "label": "Paused",
+      "data": [
+        {"start": "2023-08-17 10:11:54.429", "end": "2023-08-17 11:12:40.690",  "device": "device1", "status": "Paused", "color": "rgba(75, 192, 192, 1)"},
+        {"start": "2024-06-03 15:08:45.626", "end": "2024-06-04 15:08:46.564",  "device": "device2", "status": "Paused", "color": "rgba(75, 192, 192, 1)"},
+        {"start": "2024-06-26 15:08:46.564", "end": "2024-06-30 15:08:46.564",  "device": "device3", "status": "Paused", "color": "rgba(75, 192, 192, 1)"}
+      ]
+    }
+  ]
+}
