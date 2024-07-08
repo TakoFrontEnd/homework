@@ -48,6 +48,7 @@
 <div id="app" class="chartCard">
   <div class="chartBox">
     <canvas ref="myChart"></canvas>
+    <button type="button" class="btn btn-primary" v-on:click="togglePause">{{ paused ? '恢復更新' : '暫停更新' }}</button>
   </div>
 </div>
 
@@ -58,11 +59,11 @@ createApp({
   setup() {
     const myChart = ref(null);
     let chartInstance = null;
+    const paused = ref(false); // 暫停狀態
 
-    // Configuration for chart annotations
+
+
     
-
-    // Configuration for zoom options
     const zoomOptions = {
       pan: {
         enabled: true,
@@ -71,11 +72,20 @@ createApp({
       zoom: {
         wheel: {
           enabled: true,
-          speed: 0.1,
+          speed: 0.1, // 控制縮放的速度
+          mode: 'x',  // 僅在x軸（時間軸）進行縮放
+          threshold: 2,
+          sensitivity: 3,
+          limit: {
+            max: 10, // 最大縮放級別
+            min: 0.5  // 最小縮放級別
+          }
         },
-        pinch: { enabled: true },
-        drag: { enabled: true },
-        mode: 'x',
+        pinch: {
+          enabled: true,
+          mode: 'x'
+        },
+        mode: 'x'
       },
     };
 
@@ -87,6 +97,9 @@ createApp({
         type: 'bar',
         data,
         options: {
+          borderRadius: 5,
+          borderSkipped: false,
+          borderWidth: 2,
           animation: false,
           parsing: {
             xAxisKey: 'start',
@@ -109,7 +122,7 @@ createApp({
                   const endTime = new Date(context.dataset.data[context.dataIndex].start[1]).toLocaleDateString();
                   const status = context.dataset.label;
                   const statusColor = context.dataset.backgroundColor;
-                  console.log(context.dataset.data[context.dataIndex]);
+                  //console.log(context.dataset.data[context.dataIndex]);
                   return [
                     `Status: ${status}`,
                     `StatusColor: ${statusColor}`,
@@ -125,13 +138,18 @@ createApp({
               min: '2024-06-01',
               position: 'bottom',
               type: 'time',
-              stacked: false,
+              parser: 'yyyy-MM-DD',
+              tooltipFormat: 'yyyy-MM-DD HH:mm:ss.SSS',
               time: {
                 unit: 'day',
                 displayFormats: {
-                  hour: 'HH:mm',
-                  minute: 'HH:mm',
-                  second: 'HH:mm:ss',
+                  millisecond: 'HH:mm:ss.SSS', // Display millisecond-level time format
+                  second: 'HH:mm:ss', // Display second-level format
+                  minute: 'HH:mm', // Display minute-level format
+                  hour: 'HH:mm', // Display hour-level format
+                  day: 'MMM d', // Display date
+                  month: 'MMM yyyy', // Corrected from 'MMM YYYY' to 'MMM yyyy'
+                  year: 'yyyy' // Corrected from 'YYYY' to 'yyyy'
                 }
               },
               ticks: {
@@ -158,15 +176,17 @@ createApp({
 
     // Function to fetch data from the JSON file
     const fetchData = () => {
-      fetch('data1.json')
-        .then(response => response.json())
-        .then(data => {
-          console.log(data);
-          createChart(data);
-        })
-        .catch(error => {
-          console.error('Error fetching data:', error);
-        });
+      if (!paused.value) { // 如果暫停狀態為 false 才執行
+        fetch('data1.json')
+          .then(response => response.json())
+          .then(data => {
+            console.log('Fetched data:', data);
+            createChart(data);
+          })
+          .catch(error => {
+            console.log('Error fetching data:', error);
+          });
+      }
     };
 
     // Lifecycle hook to fetch data when the component is mounted
@@ -175,7 +195,11 @@ createApp({
       setInterval(fetchData, 1000);
     });
 
-    return { myChart };
+    const togglePause = () => {
+      paused.value = !paused.value;
+    };
+
+    return { myChart, togglePause, paused };
   }
 }).mount('#app');
 </script>
