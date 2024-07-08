@@ -5,7 +5,8 @@
       "data": [
         {"start": ["2023-08-17 14:11:34.285", "2023-08-17 14:12:44.270"],  "device": "device1", "status": "Completed","color": "rgba(108, 117, 125, 1)"},
         {"start": ["2024-06-08 15:08:41.625", "2024-06-09 15:08:45.626"],  "device": "device2", "status": "Completed","color": "rgba(108, 117, 125, 1)"},
-        {"start": ["2024-06-03 15:08:45.626", "2024-06-10 15:08:46.564"],  "device": "device3", "status": "Completed","color": "rgba(108, 117, 125, 1)"}
+        {"start": ["2024-06-03 15:08:45.626", "2024-06-10 15:08:46.564"],  "device": "device3", "status": "Completed","color": "rgba(108, 117, 125, 1)"},
+        {"start": ["2024-06-10 15:08:45.626", "2024-06-12 15:08:46.564"],  "device": "device1", "status": "Completed","color": "rgba(108, 117, 125, 1)"}
       ]
     },
     {

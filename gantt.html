@@ -12,36 +12,36 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@latest"></script>
 <style>
-      * {
-        margin: 0;
-        padding: 0;
-        font-family: sans-serif;
-      }
-      .chartMenu {
-        width: 100vw;
-        height: 40px;
-        background: #1A1A1A;
-        color: rgba(54, 162, 235, 1);
-      }
-      .chartMenu p {
-        padding: 10px;
-        font-size: 20px;
-      }
-      .chartCard {
-        width: 100vw;
-        height: calc(100vh - 40px);
-        background: rgba(54, 162, 235, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .chartBox {
-        width: 900px;
-        padding: 20px;
-        border-radius: 20px;
-        border: solid 3px rgba(54, 162, 235, 1);
-        background: white;
-      }
+  * {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+  }
+  .chartMenu {
+    width: 100vw;
+    height: 40px;
+    background: #1A1A1A;
+    color: rgba(54, 162, 235, 1);
+  }
+  .chartMenu p {
+    padding: 10px;
+    font-size: 20px;
+  }
+  .chartCard {
+    width: 100vw;
+    height: calc(100vh - 40px);
+    background: rgba(54, 162, 235, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .chartBox {
+    width: 900px;
+    padding: 20px;
+    border-radius: 20px;
+    border: solid 3px rgba(54, 162, 235, 1);
+    background: white;
+  }
 </style>
 </head>
 <body>
@@ -57,38 +57,37 @@ const { createApp, ref, onMounted } = Vue;
 createApp({
   setup() {
     const myChart = ref(null);
+    let chartInstance = null;
+
+    // Configuration for chart annotations
+    
+
+    // Configuration for zoom options
+    const zoomOptions = {
+      pan: {
+        enabled: true,
+        modifierKey: 'ctrl',
+      },
+      zoom: {
+        wheel: {
+          enabled: true,
+          speed: 0.1,
+        },
+        pinch: { enabled: true },
+        drag: { enabled: true },
+        mode: 'x',
+      },
+    };
+
+    // Function to create the chart
     const createChart = (data) => {
       const ctx = myChart.value.getContext('2d');
-
-      const annotation2 = {
-        type: 'line',
-        xMin: '2024-06-01',
-        xMax: '2024-07-20',
-        borderColor: 'rgb(255, 99, 132)',
-        borderWidth: 10,
-        draggable: true,
-      };
-
-      const zoomOptions = {
-        pan: {
-          enabled: true,
-          modifierKey: 'ctrl',
-        },
-        zoom: {
-          wheel: {
-            enabled: true,
-            speed: 0.1,
-          },
-          pinch: { enabled: true },
-          drag: { enabled: true },
-          mode: 'x',
-        },
-      };
 
       const config = {
         type: 'bar',
         data,
         options: {
+          animation: false,
           parsing: {
             xAxisKey: 'start',
             yAxisKey: 'device',
@@ -98,9 +97,7 @@ createApp({
             annotation: {
               drawTime: 'afterDraw',
               events: ['click'],
-              annotations: {
-                //annotation2,
-              }
+              
             },
             tooltip: {
               enabled: true,
@@ -108,10 +105,11 @@ createApp({
               displayColors: true,
               callbacks: {
                 label: (context) => {
-                  const startTime = new Date(context.dataset.data[context.dataIndex].start).toLocaleDateString();
-                  const endTime = new Date(context.dataset.data[context.dataIndex].end).toLocaleDateString();
+                  const startTime = new Date(context.dataset.data[context.dataIndex].start[0]).toLocaleDateString();
+                  const endTime = new Date(context.dataset.data[context.dataIndex].start[1]).toLocaleDateString();
                   const status = context.dataset.label;
                   const statusColor = context.dataset.backgroundColor;
+                  console.log(context.dataset.data[context.dataIndex]);
                   return [
                     `Status: ${status}`,
                     `StatusColor: ${statusColor}`,
@@ -145,21 +143,25 @@ createApp({
               }
             },
             y: {
-              stacked: true,
+              stacked: false,
               beginAtZero: true,
             }
           }
-        }
+        } //
       };
+      if (chartInstance){
+        chartInstance.destroy();
+      }
 
-      new Chart(ctx, config);
+      chartInstance = new Chart(ctx, config);
     };
 
+    // Function to fetch data from the JSON file
     const fetchData = () => {
       fetch('data1.json')
         .then(response => response.json())
         .then(data => {
-          console.log(data)
+          console.log(data);
           createChart(data);
         })
         .catch(error => {
@@ -167,8 +169,10 @@ createApp({
         });
     };
 
+    // Lifecycle hook to fetch data when the component is mounted
     onMounted(() => {
       fetchData();
+      setInterval(fetchData, 1000);
     });
 
     return { myChart };
