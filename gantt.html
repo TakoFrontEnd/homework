@@ -84,6 +84,14 @@ createApp({
           mode: 'x'
         },
         mode: 'x',
+        drag: {
+          enabled: true,
+          modifierKey: 'shift', // 可以指定按下 Shift 鍵才能啟動拖動
+          borderColor: 'rgba(54, 162, 235, 0.5)',
+          borderWidth: 1,
+          backgroundColor: 'rgba(54, 162, 235, 0.3)',
+          animationDuration: 1000
+        },
         onZoomComplete: ({chart}) => {
           const min = chart.scales.x.min;
           const max = chart.scales.x.max;
