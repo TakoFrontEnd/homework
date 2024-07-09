@@ -45,12 +45,27 @@
 </style>
 </head>
 <body>
-<div id="app" class="chartCard">
-  <div class="chartBox">
-    <canvas ref="myChart"></canvas>
-    <button type="button" class="btn btn-primary" v-on:click="togglePause">{{ paused ? '恢復更新' : '暫停更新' }}</button>
+  
+  <div id="app" class="chartCard">
+    <div class="chartBox">
+      <canvas ref="myChart"></canvas>
+      <button type="button" class="btn btn-primary" v-on:click="togglePause">{{ paused ? '恢復更新' : '暫停更新' }}</button>
+      <div class="mt-3">
+        <div class="input-group">
+          <input type="datetime-local" v-model="startTime" class="form-control input-sm" placeholder="開始時間">
+          <div class="input-group-prepend">
+            <span class="input-group-text">~</span>
+          </div>
+          <input type="datetime-local" v-model="endTime" class="form-control input-sm" placeholder="結束時間">
+          <div class="input-group-append">
+            <button type="button" class="btn btn-secondary btn-sm" v-on:click="applyTimeRange">搜尋</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+  
+  
 
 <script>
 const { createApp, ref, onMounted } = Vue;
@@ -60,7 +75,18 @@ createApp({
     const myChart = ref(null);
     let chartInstance = null;
     const paused = ref(false); // 暫停狀態
+    const startTime = ref(''); // 開始時間
+    const endTime = ref(''); // 結束時間
 
+    const applyTimeRange = () => {
+      if (startTime.value && endTime.value) {
+        const start = new Date(startTime.value).getTime();
+        const end = new Date(endTime.value).getTime();
+        chartInstance.options.scales.x.min = start;
+        chartInstance.options.scales.x.max = end;
+        chartInstance.update();
+      }
+    };
 
     const zoomOptions = {
       pan: {
@@ -113,86 +139,85 @@ createApp({
       }
     };
 
-
     // Function to create the chart
-const createChart = (data) => {
-  const ctx = myChart.value.getContext('2d');
+    const createChart = (data) => {
+      const ctx = myChart.value.getContext('2d');
 
-  const config = {
-    type: 'bar',
-    data,
-    options: {
-      borderRadius: 5,
-      borderSkipped: false,
-      borderWidth: 2,
-      animation: false,
-      parsing: {
-        xAxisKey: 'start',
-        yAxisKey: 'device',
-      },
-      plugins: {
-        zoom: zoomOptions,
-        annotation: {
-          drawTime: 'afterDraw',
-          events: ['click'],
-        },
-        tooltip: {
-          enabled: true,
-          padding: 10,
-          displayColors: true,
-          callbacks: {
-            label: (context) => {
-              const startTime = new Date(context.dataset.data[context.dataIndex].start[0]).toLocaleDateString();
-              const endTime = new Date(context.dataset.data[context.dataIndex].start[1]).toLocaleDateString();
-              const status = context.dataset.label;
-              const statusColor = context.dataset.backgroundColor;
-              return [
-                `Status: ${status}`,
-                `StatusColor: ${statusColor}`,
-                `StartEnd: ${startTime} ~ ${endTime}`
-              ];
-            }
-          }
-        }
-      },
-      indexAxis: 'y',
-      scales: {
-        x: {
-          min: '2024-06-01',
-          position: 'bottom',
-          type: 'time',
-          parser: 'yyyy-MM-DD',
-          tooltipFormat: 'yyyy-MM-DD HH:mm:ss.SSS',
-          time: {
-            unit: 'day',
-            displayFormats: {
-              millisecond: 'HH:mm:ss.SSS',
-              second: 'HH:mm:ss',
-              minute: 'HH:mm',
-              hour: 'HH:mm',
-              day: 'MMM d',
-              month: 'MMM yyyy',
-              year: 'yyyy'
+      const config = {
+        type: 'bar',
+        data,
+        options: {
+          borderRadius: 5,
+          borderSkipped: false,
+          borderWidth: 2,
+          animation: false,
+          parsing: {
+            xAxisKey: 'start',
+            yAxisKey: 'device',
+          },
+          plugins: {
+            zoom: zoomOptions,
+            annotation: {
+              drawTime: 'afterDraw',
+              events: ['click'],
+            },
+            tooltip: {
+              enabled: true,
+              padding: 10,
+              displayColors: true,
+              callbacks: {
+                label: (context) => {
+                  const startTime = new Date(context.dataset.data[context.dataIndex].start[0]).toLocaleDateString();
+                  const endTime = new Date(context.dataset.data[context.dataIndex].start[1]).toLocaleDateString();
+                  const status = context.dataset.label;
+                  const statusColor = context.dataset.backgroundColor;
+                  return [
+                    `Status: ${status}`,
+                    `StatusColor: ${statusColor}`,
+                    `StartEnd: ${startTime} ~ ${endTime}`
+                  ];
+                }
+              }
             }
           },
-          ticks: {
-            align: 'start',
+          indexAxis: 'y',
+          scales: {
+            x: {
+              min: '2024-06-01',
+              position: 'bottom',
+              type: 'time',
+              parser: 'yyyy-MM-DD',
+              tooltipFormat: 'yyyy-MM-DD HH:mm:ss.SSS',
+              time: {
+                unit: 'day',
+                displayFormats: {
+                  millisecond: 'HH:mm:ss.SSS',
+                  second: 'HH:mm:ss',
+                  minute: 'HH:mm',
+                  hour: 'HH:mm',
+                  day: 'MMM d',
+                  month: 'MMM yyyy',
+                  year: 'yyyy'
+                }
+              },
+              ticks: {
+                align: 'start',
+              }
+            },
+            y: {
+              stacked: false,
+              beginAtZero: true,
+            }
           }
-        },
-        y: {
-          stacked: false,
-          beginAtZero: true,
         }
+      };
+
+      if (chartInstance) {
+        chartInstance.destroy();
       }
-    }
-  };
 
-  if (chartInstance) {
-    chartInstance.destroy();
-  }
-
-  chartInstance = new Chart(ctx, config);
-};
+      chartInstance = new Chart(ctx, config);
+    };
 
     // Function to fetch data from the JSON file
     const fetchData = () => {
@@ -219,9 +244,11 @@ const createChart = (data) => {
       paused.value = !paused.value;
     };
 
-    return { myChart, togglePause, paused };
+    return { myChart, togglePause, paused, startTime, endTime, applyTimeRange };
   }
 }).mount('#app');
+</script>
+
 </script>
 </body>
 </html>
