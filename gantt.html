@@ -62,8 +62,6 @@ createApp({
     const paused = ref(false); // 暫停狀態
 
 
-
-    
     const zoomOptions = {
       pan: {
         enabled: true,
@@ -72,107 +70,121 @@ createApp({
       zoom: {
         wheel: {
           enabled: true,
-          speed: 0.1, // 控制縮放的速度
-          mode: 'x',  // 僅在x軸（時間軸）進行縮放
+          speed: 0.1,
+          mode: 'x',
           threshold: 2,
           sensitivity: 3,
           limit: {
-            max: 10, // 最大縮放級別
-            min: 0.5  // 最小縮放級別
+            max: 10,
+            min: 0.5
           }
         },
         pinch: {
           enabled: true,
           mode: 'x'
         },
-        mode: 'x'
-      },
+        mode: 'x',
+        onZoomComplete: ({chart}) => {
+          const min = chart.scales.x.min;
+          const max = chart.scales.x.max;
+          const range = max - min;
+
+          if (range <= 1000 * 60) { // 小於1分鐘顯示秒
+            chart.options.scales.x.time.unit = 'second';
+          } else if (range <= 1000 * 60 * 60) { // 小於1小時顯示分鐘
+            chart.options.scales.x.time.unit = 'minute';
+          } else if (range <= 1000 * 60 * 60 * 24) { // 小於1天顯示小時
+            chart.options.scales.x.time.unit = 'hour';
+          } else { // 顯示日期
+            chart.options.scales.x.time.unit = 'day';
+          }
+
+          console.log(`Zoom completed. New range: ${min} to ${max}`);
+          chart.update();
+        }
+      }
     };
+
 
     // Function to create the chart
-    const createChart = (data) => {
-      const ctx = myChart.value.getContext('2d');
+const createChart = (data) => {
+  const ctx = myChart.value.getContext('2d');
 
-      const config = {
-        type: 'bar',
-        data,
-        options: {
-          borderRadius: 5,
-          borderSkipped: false,
-          borderWidth: 2,
-          animation: false,
-          parsing: {
-            xAxisKey: 'start',
-            yAxisKey: 'device',
-          },
-          plugins: {
-            zoom: zoomOptions,
-            annotation: {
-              drawTime: 'afterDraw',
-              events: ['click'],
-              
-            },
-            tooltip: {
-              enabled: true,
-              padding: 10,
-              displayColors: true,
-              callbacks: {
-                label: (context) => {
-                  const startTime = new Date(context.dataset.data[context.dataIndex].start[0]).toLocaleDateString();
-                  const endTime = new Date(context.dataset.data[context.dataIndex].start[1]).toLocaleDateString();
-                  const status = context.dataset.label;
-                  const statusColor = context.dataset.backgroundColor;
-                  //console.log(context.dataset.data[context.dataIndex]);
-                  return [
-                    `Status: ${status}`,
-                    `StatusColor: ${statusColor}`,
-                    `StartEnd: ${startTime} ~ ${endTime}`
-                  ];
-                }
-              }
-            }
-          },
-          indexAxis: 'y',
-          scales: {
-            x: {
-              min: '2024-06-01',
-              position: 'bottom',
-              type: 'time',
-              parser: 'yyyy-MM-DD',
-              tooltipFormat: 'yyyy-MM-DD HH:mm:ss.SSS',
-              time: {
-                unit: 'day',
-                displayFormats: {
-                  millisecond: 'HH:mm:ss.SSS', // Display millisecond-level time format
-                  second: 'HH:mm:ss', // Display second-level format
-                  minute: 'HH:mm', // Display minute-level format
-                  hour: 'HH:mm', // Display hour-level format
-                  day: 'MMM d', // Display date
-                  month: 'MMM yyyy', // Corrected from 'MMM YYYY' to 'MMM yyyy'
-                  year: 'yyyy' // Corrected from 'YYYY' to 'yyyy'
-                }
-              },
-              ticks: {
-                autoSkip: true,
-                autoSkipPadding: 50,
-                maxRotation: 0,
-                major: { enabled: true },
-                align: 'start',
-              }
-            },
-            y: {
-              stacked: false,
-              beginAtZero: true,
+  const config = {
+    type: 'bar',
+    data,
+    options: {
+      borderRadius: 5,
+      borderSkipped: false,
+      borderWidth: 2,
+      animation: false,
+      parsing: {
+        xAxisKey: 'start',
+        yAxisKey: 'device',
+      },
+      plugins: {
+        zoom: zoomOptions,
+        annotation: {
+          drawTime: 'afterDraw',
+          events: ['click'],
+        },
+        tooltip: {
+          enabled: true,
+          padding: 10,
+          displayColors: true,
+          callbacks: {
+            label: (context) => {
+              const startTime = new Date(context.dataset.data[context.dataIndex].start[0]).toLocaleDateString();
+              const endTime = new Date(context.dataset.data[context.dataIndex].start[1]).toLocaleDateString();
+              const status = context.dataset.label;
+              const statusColor = context.dataset.backgroundColor;
+              return [
+                `Status: ${status}`,
+                `StatusColor: ${statusColor}`,
+                `StartEnd: ${startTime} ~ ${endTime}`
+              ];
             }
           }
-        } //
-      };
-      if (chartInstance){
-        chartInstance.destroy();
+        }
+      },
+      indexAxis: 'y',
+      scales: {
+        x: {
+          min: '2024-06-01',
+          position: 'bottom',
+          type: 'time',
+          parser: 'yyyy-MM-DD',
+          tooltipFormat: 'yyyy-MM-DD HH:mm:ss.SSS',
+          time: {
+            unit: 'day',
+            displayFormats: {
+              millisecond: 'HH:mm:ss.SSS',
+              second: 'HH:mm:ss',
+              minute: 'HH:mm',
+              hour: 'HH:mm',
+              day: 'MMM d',
+              month: 'MMM yyyy',
+              year: 'yyyy'
+            }
+          },
+          ticks: {
+            align: 'start',
+          }
+        },
+        y: {
+          stacked: false,
+          beginAtZero: true,
+        }
       }
+    }
+  };
 
-      chartInstance = new Chart(ctx, config);
-    };
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  chartInstance = new Chart(ctx, config);
+};
 
     // Function to fetch data from the JSON file
     const fetchData = () => {
